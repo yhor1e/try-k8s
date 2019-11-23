@@ -166,6 +166,10 @@ Events:
 ```
 
 ```
+$ export POD_NAME=$(kubectl get pods -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}')
+echo Name of the Pod: $POD_NAME
+Name of the Pod: kubernetes-bootcamp-69fbc6f4cf-m7c7q
+
 $ curl http://127.0.0.1:8001/api/v1/namespaces/default/pods/$POD_NAME/proxy/
 Error trying to reach service: 'dial tcp 172.17.0.6:80: connect: connection refused'
 ```
