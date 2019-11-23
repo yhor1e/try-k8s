@@ -175,3 +175,49 @@ Error trying to reach service: 'dial tcp 172.17.0.6:80: connect: connection refu
 ```
 
 `connection refused` される
+
+```
+$ kubectl exec $POD_NAME env
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+HOSTNAME=kubernetes-bootcamp-69fbc6f4cf-m7c7q
+KUBERNETES_PORT_443_TCP=tcp://10.96.0.1:443
+KUBERNETES_PORT_443_TCP_PROTO=tcp
+KUBERNETES_PORT_443_TCP_PORT=443
+KUBERNETES_PORT_443_TCP_ADDR=10.96.0.1
+KUBERNETES_SERVICE_HOST=10.96.0.1
+KUBERNETES_SERVICE_PORT=443
+KUBERNETES_SERVICE_PORT_HTTPS=443
+KUBERNETES_PORT=tcp://10.96.0.1:443
+NPM_CONFIG_LOGLEVEL=info
+NODE_VERSION=6.3.1
+HOME=/root
+```
+
+```
+$ kubectl exec -ti $POD_NAME bash
+root@kubernetes-bootcamp-69fbc6f4cf-m7c7q:/# cat server.js
+var http = require('http');
+var requests=0;
+var podname= process.env.HOSTNAME;
+var startTime;
+var host;
+var handleRequest = function(request, response) {
+  response.setHeader('Content-Type', 'text/plain');
+  response.writeHead(200);
+  response.write("Hello Kubernetes bootcamp! | Running on: ");
+  response.write(host);
+  response.end(" | v=1\n");
+  console.log("Running On:" ,host, "| Total Requests:", ++requests,"| App Uptime:", (new Date() - startTime)/1000 , "seconds", "| Log Time:",new Date());
+}
+var www = http.createServer(handleRequest);
+www.listen(8080,function () {
+    startTime = new Date();;
+    host = process.env.HOSTNAME;
+    console.log ("Kubernetes Bootcamp App Started At:",startTime, "| Running On: " ,host, "\n" );
+});
+
+root@kubernetes-bootcamp-69fbc6f4cf-m7c7q:/# curl localhost:8080
+Hello Kubernetes bootcamp! | Running on: kubernetes-bootcamp-69fbc6f4cf-m7c7q | v=1
+```
+
+Pod の Bash からは curl できている。
