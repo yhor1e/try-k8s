@@ -257,4 +257,4 @@ Proto Recv-Q Send-Q Local Address           Foreign Address         State
 tcp        0      0 :::8080                 :::*                    LISTEN    
 ```
 
-80 ポートが Listen されない
+80 ポートが Listen されてない
