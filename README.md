@@ -5,7 +5,7 @@
 <details>
   <summary>log</summary>
   
-```
+```bash
 $ minikube start --v=0
 😄  minikube v1.5.2 on Darwin 10.14.6
 💡  Tip: Use 'minikube start -p <name>' to create a new cluster, or 'minikube delete' to delete this one.
@@ -17,7 +17,7 @@ $ minikube start --v=0
 🏄  Done! kubectl is now configured to use "minikube"
 ```
 
-```
+```bash
 $ kubectl get nodes 
 NAME       STATUS   ROLES    AGE   VERSION
 minikube   Ready    master   21m   v1.16.2
@@ -31,28 +31,29 @@ minikube   Ready    master   21m   v1.16.2
 <details>
   <summary>log</summary>
 
-```
+```bash
 $ kubectl create deployment kubernetes-bootcamp --image=gcr.io/google-samples/kubernetes-bootcamp:v1
 deployment.apps/kubernetes-bootcamp created
 ```
 
-```
+```bash
 $ kubectl get nodes
 NAME       STATUS   ROLES    AGE   VERSION
 minikube   Ready    master   29m   v1.16.2
 ```
-```
+
+```bash
 $ kubectl get deployments      
 NAME                  READY   UP-TO-DATE   AVAILABLE   AGE
 kubernetes-bootcamp   1/1     1            1           109s
 ```
 
-```
+```bash
 $ kubectl proxy
 Starting to serve on 127.0.0.1:8001
 ```
 
-```
+```bash
 $ curl http://127.0.0.1:8001
 {
   "paths": [
@@ -66,7 +67,7 @@ $ curl http://127.0.0.1:8001
 }
 ```
 
-```
+```bash
 $ curl http://127.0.0.1:8001/version
 {
   "major": "1",
@@ -81,7 +82,7 @@ $ curl http://127.0.0.1:8001/version
 }
 ```
 
-```
+```bash
 $ kubectl get pods 
 NAME                                   READY   STATUS    RESTARTS   AGE
 kubernetes-bootcamp-69fbc6f4cf-755h5   1/1     Running   0          8m21s
@@ -96,29 +97,29 @@ kubernetes-bootcamp-69fbc6f4cf-755h5   1/1     Running   0          8m21s
 deployments を削除し pods を確認すると STATUS が Terminating。
 その後、再度、deployments を作成すると pods の STATUS が Running。
 
-```
+```bash
 $ kubectl get deployments
 NAME                  READY   UP-TO-DATE   AVAILABLE   AGE
 kubernetes-bootcamp   1/1     1            1           8m30s
 ```
 
-```
+```bash
 $ kubectl delete deployment kubernetes-bootcamp 
 deployment.apps "kubernetes-bootcamp" deleted
 ```
 
-```
+```bash
 $ kubectl get pods                          
 NAME                                   READY   STATUS        RESTARTS   AGE
 kubernetes-bootcamp-69fbc6f4cf-755h5   1/1     Terminating   0          10m
 ```
 
-```
+```bash
 $ kubectl create deployment kubernetes-bootcamp --image=gcr.io/google-samples/kubernetes-bootcamp:v1
 deployment.apps/kubernetes-bootcamp created
 ```
 
-```
+```bash
 $ kubectl get pods                  
 NAME                                   READY   STATUS    RESTARTS   AGE
 kubernetes-bootcamp-69fbc6f4cf-26hdk   1/1     Running   0          6s
@@ -130,7 +131,7 @@ kubernetes-bootcamp-69fbc6f4cf-26hdk   1/1     Running   0          6s
 <details>
   <summary>log</summary>
 
-```
+```bash
 $ kubectl describe pods
 Name:         kubernetes-bootcamp-69fbc6f4cf-m7c7q
 Namespace:    default
@@ -183,7 +184,7 @@ Events:
   Normal  Started    3s         kubelet, minikube  Started container kubernetes-bootcamp
 ```
 
-```
+```bash
 $ export POD_NAME=$(kubectl get pods -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}')
 echo Name of the Pod: $POD_NAME
 Name of the Pod: kubernetes-bootcamp-69fbc6f4cf-m7c7q
@@ -200,14 +201,14 @@ Error trying to reach service: 'dial tcp 172.17.0.6:80: connect: connection refu
 
 katacode 環境だと正常にレスポンスがあるが、ローカルでは refused されるのでデバッグする。
 
-```
+```bash
 $ curl http://127.0.0.1:8001/api/v1/namespaces/default/pods/$POD_NAME/proxy/
 Error trying to reach service: 'dial tcp 172.17.0.6:80: connect: connection refused'
 ```
 
 Pod の Bash からは curl できている。
 
-```
+```bash
 $ kubectl exec -ti $POD_NAME bash
 root@kubernetes-bootcamp-69fbc6f4cf-m7c7q:/# cat server.js
 var http = require('http');
@@ -236,11 +237,11 @@ Hello Kubernetes bootcamp! | Running on: kubernetes-bootcamp-69fbc6f4cf-m7c7q | 
 
 Pod の listening port を確認する。
 
-```
+```bash
 $ minikube ssh
 ```
 
-```
+```bash
 $ sudo ip netns add foo
 $ ip netns ls
 foo
@@ -255,3 +256,5 @@ Active Internet connections (only servers)
 Proto Recv-Q Send-Q Local Address           Foreign Address         State       
 tcp        0      0 :::8080                 :::*                    LISTEN    
 ```
+
+80 ポートが Listen されない
