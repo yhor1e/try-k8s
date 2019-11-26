@@ -2,6 +2,9 @@
 
 ## https://kubernetes.io/docs/tutorials/kubernetes-basics/create-cluster/cluster-intro/
 
+<details>
+  <summary>log</summary>
+  
 ```
 $ minikube start --v=0
 😄  minikube v1.5.2 on Darwin 10.14.6
@@ -19,7 +22,14 @@ $ kubectl get nodes
 NAME       STATUS   ROLES    AGE   VERSION
 minikube   Ready    master   21m   v1.16.2
 ```
+</details>
+
+
+
 ## https://kubernetes.io/docs/tutorials/kubernetes-basics/deploy-app/deploy-intro/
+
+<details>
+  <summary>log</summary>
 
 ```
 $ kubectl create deployment kubernetes-bootcamp --image=gcr.io/google-samples/kubernetes-bootcamp:v1
@@ -76,8 +86,12 @@ $ kubectl get pods
 NAME                                   READY   STATUS    RESTARTS   AGE
 kubernetes-bootcamp-69fbc6f4cf-755h5   1/1     Running   0          8m21s
 ```
+</details>
 
 ### delete deployments
+
+<details>
+  <summary>log</summary>
 
 deployments を削除し pods を確認すると STATUS が Terminating。
 その後、再度、deployments を作成すると pods の STATUS が Running。
@@ -109,8 +123,12 @@ $ kubectl get pods
 NAME                                   READY   STATUS    RESTARTS   AGE
 kubernetes-bootcamp-69fbc6f4cf-26hdk   1/1     Running   0          6s
 ```
+</details>
 
 ## https://kubernetes.io/docs/tutorials/kubernetes-basics/explore/explore-intro/
+
+<details>
+  <summary>log</summary>
 
 ```
 $ kubectl describe pods
@@ -176,22 +194,18 @@ Error trying to reach service: 'dial tcp 172.17.0.6:80: connect: connection refu
 
 `connection refused` される
 
+</details>
+
+### デバッグ
+
+katacode 環境だと正常にレスポンスがあるが、ローカルでは refused されるのでデバッグする。
+
 ```
-$ kubectl exec $POD_NAME env
-PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-HOSTNAME=kubernetes-bootcamp-69fbc6f4cf-m7c7q
-KUBERNETES_PORT_443_TCP=tcp://10.96.0.1:443
-KUBERNETES_PORT_443_TCP_PROTO=tcp
-KUBERNETES_PORT_443_TCP_PORT=443
-KUBERNETES_PORT_443_TCP_ADDR=10.96.0.1
-KUBERNETES_SERVICE_HOST=10.96.0.1
-KUBERNETES_SERVICE_PORT=443
-KUBERNETES_SERVICE_PORT_HTTPS=443
-KUBERNETES_PORT=tcp://10.96.0.1:443
-NPM_CONFIG_LOGLEVEL=info
-NODE_VERSION=6.3.1
-HOME=/root
+$ curl http://127.0.0.1:8001/api/v1/namespaces/default/pods/$POD_NAME/proxy/
+Error trying to reach service: 'dial tcp 172.17.0.6:80: connect: connection refused'
 ```
+
+Pod の Bash からは curl できている。
 
 ```
 $ kubectl exec -ti $POD_NAME bash
@@ -220,4 +234,24 @@ root@kubernetes-bootcamp-69fbc6f4cf-m7c7q:/# curl localhost:8080
 Hello Kubernetes bootcamp! | Running on: kubernetes-bootcamp-69fbc6f4cf-m7c7q | v=1
 ```
 
-Pod の Bash からは curl できている。
+Pod の listening port を確認する。
+
+```
+$ minikube ssh
+```
+
+```
+$ sudo ip netns add foo
+$ ip netns ls
+foo
+$ ls /var/run/netns/
+foo
+$ sudo ln -s /proc/4177/ns/net /var/run/netns/4177
+$ ip netns ls
+4177
+foo
+$ sudo ip net exec 4177 netstat -lnt
+Active Internet connections (only servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       
+tcp        0      0 :::8080                 :::*                    LISTEN    
+```
