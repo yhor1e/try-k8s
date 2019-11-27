@@ -199,6 +199,9 @@ Error trying to reach service: 'dial tcp 172.17.0.6:80: connect: connection refu
 
 ### デバッグ
 
+<details>
+  <summary>log</summary>
+
 katacode 環境だと正常にレスポンスがあるが、ローカルでは refused されるのでデバッグする。
 
 ```bash
@@ -258,3 +261,106 @@ tcp        0      0 :::8080                 :::*                    LISTEN
 ```
 
 80 ポートが Listen されてない
+
+</details>
+
+## https://kubernetes.io/docs/tutorials/kubernetes-basics/expose/expose-intro/
+
+<details>
+  <summary>log</summary>
+  
+```bash
+$ minikube start
+😄  minikube v1.5.2 on Darwin 10.14.6
+  :
+🏄  Done! kubectl is now configured to use "minikube"
+
+$ kubectl create deployment kubernetes-bootcamp --image=gcr.io/google-samples/kubernetes-bootcamp:v1
+deployment.apps/kubernetes-bootcamp created
+
+$ kubectl get pods
+NAME                                   READY   STATUS              RESTARTS   AGE
+kubernetes-bootcamp-69fbc6f4cf-jhkh4   0/1     ContainerCreating   0          14s
+
+$ kubectl get deployments.apps  
+NAME                  READY   UP-TO-DATE   AVAILABLE   AGE
+kubernetes-bootcamp   1/1     1            1           93s
+
+$ kubectl expose deployment/kubernetes-bootcamp --type="LoadBalancer" --port 8080
+service/kubernetes-bootcamp exposed
+
+$ kubectl get service #kubernetes-bootcamp 部分ができていることを確認
+NAME                  TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)          AGE
+kubernetes            ClusterIP      10.96.0.1      <none>        443/TCP          5m16s
+kubernetes-bootcamp   LoadBalancer   10.104.50.29   <pending>     8080:30231/TCP   25s
+
+$ kubectl describe services 
+Name:              kubernetes
+Namespace:         default
+Labels:            component=apiserver
+                   provider=kubernetes
+  : 
+NodePort:                 <unset>  30231/TCP #ポートを確認
+  :
+
+$ minikube ip
+192.168.99.108
+
+$ curl 192.168.99.108:30231
+Hello Kubernetes bootcamp! | Running on: kubernetes-bootcamp-69fbc6f4cf-jhkh4 | v=1
+
+$ kubectl describe deployments.apps 
+Name:                   kubernetes-bootcamp
+  :
+Labels:                 app=kubernetes-bootcamp
+  :
+
+$ kubectl get pods -l app=kubernetes-bootcamp
+NAME                                   READY   STATUS    RESTARTS   AGE
+kubernetes-bootcamp-69fbc6f4cf-jhkh4   1/1     Running   0          8m39s
+
+$ kubectl get services -l app=kubernetes-bootcamp
+NAME                  TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)          AGE
+kubernetes-bootcamp   LoadBalancer   10.104.50.29   <pending>     8080:30231/TCP   7m14s
+
+$ kubectl describe pods 
+Name:         kubernetes-bootcamp-69fbc6f4cf-jhkh4
+  ：
+Labels:       app=kubernetes-bootcamp
+              pod-template-hash=69fbc6f4cf
+  ：
+
+$ kubectl label pod kubernetes-bootcamp-69fbc6f4cf-jhkh4 app=v1 ＃すでにあるものと同じプレフィックスを付けるのは不可能な模様
+error: 'app' already has a value (kubernetes-bootcamp), and --overwrite is false
+
+$ kubectl label pod kubernetes-bootcamp-69fbc6f4cf-jhkh4 run=v1
+pod/kubernetes-bootcamp-69fbc6f4cf-jhkh4 labeled
+
+$ kubectl describe pods                                        
+Name:         kubernetes-bootcamp-69fbc6f4cf-jhkh4
+  ：
+Labels:       app=kubernetes-bootcamp
+              pod-template-hash=69fbc6f4cf
+              run=v1
+  ：
+
+$ kubectl get pods -l run=v1
+NAME                                   READY   STATUS    RESTARTS   AGE
+kubernetes-bootcamp-69fbc6f4cf-jhkh4   1/1     Running   0          14m
+
+$ kubectl delete services -l app=kubernetes-bootcamp
+service "kubernetes-bootcamp" deleted
+
+$ kubectl get service
+NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   17m
+
+$ curl 192.168.99.108:30231
+curl: (7) Failed to connect to 192.168.99.108 port 30231: Connection refused
+
+$ kubectl exec -ti kubernetes-bootcamp-69fbc6f4cf-jhkh4 curl localhost:8080
+Hello Kubernetes bootcamp! | Running on: kubernetes-bootcamp-69fbc6f4cf-jhkh4 | v=1
+```
+
+
+</details>
